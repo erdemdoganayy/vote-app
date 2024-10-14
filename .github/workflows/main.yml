@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+    steps:    
+      - uses: actions/checkout@v4
+      
+      - name: Login to DockerHUB 
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        
+          
+      - name: BookApp Build, tag, and push image to DockerHUB  
+        env:
+          IMAGE_NAME: vote-app
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_TAG ./app
+          docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_TAG
+
+      - name: Update GitOps Values
+        env:
+            IMAGE_TAG: ${{ github.sha }}
+        run: |
+            sed -i "" "s/tag: v1/tag: $IMAGE_TAG/" ./gitops/chart/values.yaml
+
+      - name: Helm Upgrade
+        run: |
+          helm ls
+          helm upgrade --install book-app-chart -n default ./gitops/chart
+      
+    
+    
