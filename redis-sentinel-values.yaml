@@ -1,0 +1,7 @@
+global:
+  redis:
+    password: redis
+replica:
+  replicacount: 3
+sentinel:
+  enabled: true
