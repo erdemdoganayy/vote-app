@@ -45,11 +45,23 @@ jobs:
           docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_TAG ./result
           docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_TAG
 
-      - name: Update GitOps Values
+      - name: Update GitOps Values Vote
         env:
             IMAGE_TAG: ${{ github.sha }}
         run: |
-            sed -i "" "s/tag: v1/tag: $IMAGE_TAG/" ./gitops/chart/values.yaml
+            sed -i "" "s/tag: v1/tag: $IMAGE_TAG/" ./gitops/vote/values.yaml
+            
+      - name: Update GitOps Values Worker
+        env:
+            IMAGE_TAG: ${{ github.sha }}
+        run: |
+            sed -i "" "s/tag: v1/tag: $IMAGE_TAG/" ./gitops/worker/values.yaml
+
+      - name: Update GitOps Values Result
+        env:
+            IMAGE_TAG: ${{ github.sha }}
+        run: |
+            sed -i "" "s/tag: v1/tag: $IMAGE_TAG/" ./gitops/result/values.yaml
 
       - name: Helm Upgrade
         run: |
